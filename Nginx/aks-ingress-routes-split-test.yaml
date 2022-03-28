@@ -1,0 +1,187 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aks-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/whitelist-source-range: "0.0.0.0/0"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine On
+      SecAuditEngine On
+      SecRuleRemoveById 932100
+      SecRuleRemoveById 932150
+      SecRuleRemoveById 932115
+      SecRuleRemoveById 949110
+      SecRuleRemoveById 950109
+      SecRuleRemoveById 950120
+      SecRuleRemoveById 950901
+      SecRuleRemoveById 959071
+      SecRuleRemoveById 959072
+      SecRuleRemoveById 960008
+      SecRuleRemoveById 960015
+      SecRuleRemoveById 960024
+      SecRuleRemoveById 973338
+      SecRuleRemoveById 981172
+      SecRuleRemoveById 981173
+      SecRuleRemoveById 981231
+      SecRuleRemoveById 981242
+      SecRuleRemoveById 981243
+      SecRuleRemoveById 981245
+      SecRuleRemoveById 981246
+      SecRuleRemoveById 981247
+      SecRuleRemoveById 981248
+      SecRuleRemoveById 981257
+      SecRuleRemoveById 981260
+      SecRuleRemoveById 981318
+      SecRuleRemoveById 981319
+      SecRuleRemoveById 981320
+spec:
+  tls:
+  - hosts:
+    - palveluohjain-test-aks.westeurope.cloudapp.azure.com
+    - testbotfront.palveluohjaaja.fi
+    secretName: tls-secret
+  rules:
+  - host: palveluohjain-test-aks.westeurope.cloudapp.azure.com
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: botfront
+            port:
+              number: 3000
+      - path: /servicematcher/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: service-match-engine
+            port:
+              number: 80
+      - path: /webbackend/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: web-backend
+            port:
+              number: 3000
+  - host: testbotfront.palveluohjaaja.fi
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: botfront
+            port:
+              number: 3000
+      - path: /servicematcher/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: service-match-engine
+            port:
+              number: 80
+      - path: /webbackend/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: web-backend
+            port:
+              number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aks-ingress-rasa
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/whitelist-source-range: "0.0.0.0/0"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/rewrite-target: /socket.io/$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      SecRuleEngine On
+      SecAuditEngine On
+      SecRuleRemoveById 932100
+      SecRuleRemoveById 932150
+      SecRuleRemoveById 932115
+      SecRuleRemoveById 949110
+      SecRuleRemoveById 950109
+      SecRuleRemoveById 950120
+      SecRuleRemoveById 950901
+      SecRuleRemoveById 959071
+      SecRuleRemoveById 959072
+      SecRuleRemoveById 960008
+      SecRuleRemoveById 960015
+      SecRuleRemoveById 960024
+      SecRuleRemoveById 973338
+      SecRuleRemoveById 981172
+      SecRuleRemoveById 981173
+      SecRuleRemoveById 981231
+      SecRuleRemoveById 981242
+      SecRuleRemoveById 981243
+      SecRuleRemoveById 981245
+      SecRuleRemoveById 981246
+      SecRuleRemoveById 981247
+      SecRuleRemoveById 981248
+      SecRuleRemoveById 981257
+      SecRuleRemoveById 981260
+      SecRuleRemoveById 981318
+      SecRuleRemoveById 981319
+      SecRuleRemoveById 981320
+spec:
+  tls:
+  - hosts:
+    - palveluohjain-test-aks.westeurope.cloudapp.azure.com
+    - testbotfront.palveluohjaaja.fi
+    secretName: tls-secret
+  rules:
+  - host: palveluohjain-test-aks.westeurope.cloudapp.azure.com
+    http:
+      paths:
+      - path: /rasa/socket.io(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: rasa-dev
+            port:
+              number: 5005
+      - path: /rasa-dev/socket.io(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: rasa-dev
+            port:
+              number: 5005
+  - host: testbotfront.palveluohjaaja.fi
+    http:
+      paths:
+      - path: /rasa/socket.io(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: rasa-dev
+            port:
+              number: 5005
+      - path: /rasa-dev/socket.io(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: rasa-dev
+            port:
+              number: 5005
